@@ -19,10 +19,7 @@ export function LoginPage() {
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email.trim() || !password.trim()) {
-      alert('请填写邮箱和密码')
-      return
-    }
+    if (!email.trim() || !password.trim()) return
     setLoading(true)
     setError('')
     try {
@@ -31,7 +28,7 @@ export function LoginPage() {
         : await signUp(email.trim(), password)
       if (result.error) {
         if (result.error.includes('Invalid login')) {
-          setError('邮箱或密码错误')
+          setError('邮箱或密码错误（新注册的账号可能需要先验证邮箱）')
         } else if (result.error.includes('already registered')) {
           setError('该邮箱已注册，请直接登录')
         } else if (result.error.includes('rate limit')) {
@@ -39,12 +36,9 @@ export function LoginPage() {
         } else {
           setError(result.error)
         }
-      } else {
-        alert(mode === 'login' ? '登录成功！' : '注册成功！')
       }
     } catch (err: any) {
       setError(err.message || '未知错误')
-      alert('请求失败: ' + (err.message || '未知错误'))
     }
     setLoading(false)
   }
