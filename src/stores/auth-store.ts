@@ -7,6 +7,8 @@ interface AuthState {
   loading: boolean
   init: () => Promise<void>
   signIn: (email: string) => Promise<{ error: string | null }>
+  signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>
+  signUp: (email: string, password: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
 }
 
@@ -15,11 +17,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: true,
 
   init: async () => {
-    // 检查已有 session（刷新页面后恢复登录状态）
     const { data: { session } } = await supabase.auth.getSession()
     set({ user: session?.user ?? null, loading: false })
 
-    // 监听登录状态变化（Magic Link 点击后自动触发）
     supabase.auth.onAuthStateChange((_event, session) => {
       set({ user: session?.user ?? null })
     })
@@ -28,14 +28,23 @@ export const useAuthStore = create<AuthState>((set) => ({
   signIn: async (email: string) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
+      options: { emailRedirectTo: window.location.origin },
     })
-    if (error) {
-      return { error: error.message }
-    }
-    return { error: null }
+    return error ? { error: error.message } : { error: null }
+  },
+
+  signInWithPassword: async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    return error ? { error: error.message } : { error: null }
+  },
+
+  signUp: async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: window.location.origin },
+    })
+    return error ? { error: error.message } : { error: null }
   },
 
   signOut: async () => {
