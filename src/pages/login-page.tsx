@@ -19,25 +19,34 @@ export function LoginPage() {
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email.trim() || !password.trim()) return
+    if (!email.trim() || !password.trim()) {
+      alert('请填写邮箱和密码')
+      return
+    }
     setLoading(true)
     setError('')
-    const result = mode === 'login'
-      ? await signInWithPassword(email.trim(), password)
-      : await signUp(email.trim(), password)
-    setLoading(false)
-    if (result.error) {
-      // 翻译常见错误
-      if (result.error.includes('Invalid login')) {
-        setError('邮箱或密码错误')
-      } else if (result.error.includes('already registered')) {
-        setError('该邮箱已注册，请直接登录')
-      } else if (result.error.includes('rate limit')) {
-        setError('操作太频繁，请稍后再试')
+    try {
+      const result = mode === 'login'
+        ? await signInWithPassword(email.trim(), password)
+        : await signUp(email.trim(), password)
+      if (result.error) {
+        if (result.error.includes('Invalid login')) {
+          setError('邮箱或密码错误')
+        } else if (result.error.includes('already registered')) {
+          setError('该邮箱已注册，请直接登录')
+        } else if (result.error.includes('rate limit')) {
+          setError('操作太频繁，请稍后再试')
+        } else {
+          setError(result.error)
+        }
       } else {
-        setError(result.error)
+        alert(mode === 'login' ? '登录成功！' : '注册成功！')
       }
+    } catch (err: any) {
+      setError(err.message || '未知错误')
+      alert('请求失败: ' + (err.message || '未知错误'))
     }
+    setLoading(false)
   }
 
   const handleMagicSubmit = async (e: React.FormEvent) => {
